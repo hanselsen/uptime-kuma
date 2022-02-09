@@ -1,5 +1,5 @@
 <template>
-    <span :class="className" :title="24 + $t('-hour')">{{ uptime }}</span>
+    <span :class="className">{{ uptime }}</span>
 </template>
 
 <script>
@@ -11,12 +11,19 @@ export default {
             type: Boolean,
             default: false,
         },
+        pct: {
+            type: Boolean,
+            default: true
+        }
     },
 
     computed: {
         uptime() {
 
             let key = this.monitor.id + "_" + this.type;
+            if(!this.pct) {
+                return this.text;
+            }
 
             if (this.$root.uptimeList[key] !== undefined) {
                 return Math.round(this.$root.uptimeList[key] * 10000) / 100 + "%";
@@ -40,10 +47,27 @@ export default {
 
             return "secondary"
         },
+        text() {
+            if (this.lastHeartBeat.status === 0) {
+                return this.$t("Down");
+            }
+
+            if (this.lastHeartBeat.status === 1) {
+                return this.$t("Up");
+            }
+
+            if (this.lastHeartBeat.status === 2) {
+                return this.$t("Pending");
+            }
+
+            return this.$t("Unknown");
+        },
 
         lastHeartBeat() {
             if (this.monitor.id in this.$root.lastHeartbeatList && this.$root.lastHeartbeatList[this.monitor.id]) {
-                return this.$root.lastHeartbeatList[this.monitor.id]
+                return {
+                    ...this.$root.lastHeartbeatList[this.monitor.id]
+                };
             }
 
             return {
